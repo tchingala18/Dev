@@ -19,7 +19,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 //Rotas
+app.use('/', defaultRoute); // Rota padrão
+app.use('/admin',admin); // Rota para admin
 app.use('/api', api); // Usa as rotas da API
+
 
 //servidor
 app.listen(PORT, () => {
