@@ -7,10 +7,21 @@ const cors = require('cors');
 const path = require('node:path');
 const dotenv = require('dotenv');
 const api=require('./routes/api'); // Importa as rotas da API
+const admin=require('./routes/admin'); // Importa as rotas do admin
+const defaultRoute=require('./routes/default'); // Importa as rotas padrão
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+//interações com as views
+app.engine('hbs', exphbs.engine({
+  extname: '.hbs',
+  defaultLayout: 'main', //Define "main" com layout padrão
+  layoutsDir: path.join(__dirname, 'views', 'layouts'), //Diretório dos layouts
+}));
+app.set('view engine', 'hbs');
+
 
 //Middlewares
 app.use(express.static(path.join(__dirname, 'public')));
@@ -18,10 +29,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+
 //Rotas
 app.use('/', defaultRoute); // Rota padrão
 app.use('/admin',admin); // Rota para admin
 app.use('/api', api); // Usa as rotas da API
+
 
 
 //servidor
