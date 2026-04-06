@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Tarefas Flexível</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .filter-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: white;
+      display: inline-block;
+    }
+
+    .filter-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .filter-btn.active {
+      box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+      transform: scale(1.05);
+    }
+
+    .add-task-form {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      margin-bottom: 30px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      flex: 1;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .tasks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .task-card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .task-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .task-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+    }
+
+    <% states.forEach(state => { %>
+      .task-card.state-<%= state.id %>::before {
+        background-color: <%= state.color %>;
+      }
+    <% }) %>
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .task-title {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #333;
+      flex: 1;
+    }
+
+    .task-state {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      color: white;
+      text-transform: uppercase;
+    }
+
+    .task-description {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .task-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 15px;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .state-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .state-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .delete-btn {
+      background: #dc3545;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .delete-btn:hover {
+      background: #c82333;
+      transform: scale(1.05);
+    }
+
+    .no-tasks {
+      text-align: center;
+      color: white;
+      font-size: 1.2em;
+      padding: 50px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📋 Sistema de Tarefas Flexível</h1>
+
+    <div class="filters">
+      <a href="/?filter=all" class="filter-btn <%= currentFilter === 'all' ? 'active' : '' %>" style="background: #6c757d;">Todas</a>
+      <% states.forEach(state => { %>
+        <a href="/?filter=<%= state.id %>" 
+           class="filter-btn <%= currentFilter === state.id ? 'active' : '' %>" 
+           style="background: <%= state.color %>;">
+          <%= state.label %>
+        </a>
+      <% }) %>
+    </div>
+
+    <div class="add-task-form">
+      <form action="/tasks" method="POST">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="title">Título da Tarefa</label>
+            <input type="text" id="title" name="title" placeholder="Ex: Completar relatório mensal" required>
+          </div>
+          <div class="form-group">
+            <label for="state">Estado Inicial</label>
+            <select id="state" name="state">
+              <% states.forEach(state => { %>
+                <option value="<%= state.id %>"><%= state.label %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="description">Descrição</label>
+          <textarea id="description" name="description" rows="3" placeholder="Descreva os detalhes da tarefa..."></textarea>
+        </div>
+        <button type="submit" class="btn-submit">➕ Adicionar Tarefa</button>
+      </form>
+    </div>
+
+    <% if (tasks.length === 0) { %>
+      <div class="no-tasks">
+        <p>Nenhuma tarefa encontrada. Comece adicionando uma nova tarefa!</p>
+      </div>
+    <% } else { %>
+      <div class="tasks-grid">
+        <% tasks.forEach(task => { %>
+          <div class="task-card state-<%= task.state %>">
+            <div class="task-header">
+              <div class="task-title"><%= task.title %></div>
+              <% 
+                const currentState = states.find(s => s.id === task.state);
+                if (currentState) { 
+              %>
+                <span class="task-state" style="background: <%= currentState.color %>;">
+                  <%= currentState.label %>
+                </span>
+              <% } %>
+            </div>
+            
+            <% if (task.description) { %>
+              <div class="task-description"><%= task.description %></div>
+            <% } %>
+            
+            <div class="task-meta">
+              <span>ID: #<%= task.id %></span>
+              <span>Criada em: <%= new Date(task.createdAt).toLocaleDateString('pt-BR') %></span>
+            </div>
+
+            <div class="task-actions">
+              <% states.forEach(state => { %>
+                <% if (state.id !== task.state) { %>
+                  <button class="state-btn" 
+                          onclick="updateTaskState(<%= task.id %>, '<%= state.id %>')"
+                          style="background: <%= state.color %>;">
+                    <%= state.label %>
+                  </button>
+                <% } %>
+              <% }) %>
+              <button class="delete-btn" onclick="deleteTask(<%= task.id %>)">🗑️ Excluir</button>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    async function updateTaskState(taskId, newState) {
+      try {
+        const response = await fetch(`/tasks/${taskId}/state`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ state: newState })
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Erro ao atualizar estado da tarefa');
+        }
+      } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao atualizar estado da tarefa');
+      }
+    }
+
+    async function deleteTask(taskId) {
+      if (!confirm('Tem certeza que deseja excluir esta tarefa?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/tasks/${taskId}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Erro ao excluir tarefa');
+        }
+      } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao excluir tarefa');
+      }
+    }
+  </script>
+</body>
+</html>
